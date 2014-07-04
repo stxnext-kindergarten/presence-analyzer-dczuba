@@ -6,6 +6,7 @@ import os.path
 import json
 import datetime
 import unittest
+from mock import patch
 
 from presence_analyzer import main, views, utils
 
@@ -52,6 +53,36 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         data = json.loads(resp.data)
         self.assertEqual(len(data), 2)
         self.assertDictEqual(data[0], {u'user_id': 10, u'name': u'User 10'})
+
+    def test_presence_start_end_view(self):
+        """
+        Test user presence start-end view
+        """
+        url = '/api/v1/presence_start_end/%d'
+        user_id = 11
+        resp = self.client.get(url % user_id)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        data = json.loads(resp.data)
+        self.assertEqual(len(data), 5)
+        self.assertEqual(len(data[0]), 3)
+        self.assertTrue('Mon' in data[0])
+
+    @patch.object(views.log, 'debug')
+    def test_presence_start_end_view_log(self, mock_logger):
+        """
+        Test user presence start-end view for non-existing user
+        """
+        url = '/api/v1/presence_start_end/%d'
+        user_id = 112312
+        resp = self.client.get(url % user_id)
+        mock_logger.assert_called_once_with('User %s not found!', user_id)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        data = json.loads(resp.data)
+        self.assertEqual(data, [])
 
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):

@@ -97,3 +97,21 @@ def mean(items):
     Calculates arithmetic mean. Returns zero for empty lists.
     """
     return float(sum(items)) / len(items) if len(items) > 0 else 0
+
+
+def get_start_end_mean_time(user_data):
+    result = {}
+    dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    for day, row in user_data.items():
+        if day.weekday() not in result:
+            result[day.weekday()] = {'start': [], 'end': []}
+
+        dow = day.weekday()
+        result[dow]['start'].append(seconds_since_midnight(row['start']))
+        result[dow]['end'].append(seconds_since_midnight(row['end']))
+
+    return [
+        (dows[k], int(mean(v['start'])*1000), int(mean(v['end'])*1000))
+        for k, v in result.items()
+    ]
