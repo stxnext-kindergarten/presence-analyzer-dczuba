@@ -173,7 +173,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertIsInstance(user_10, dict)
 
         for i in xrange(7):
-            self.assertTrue(i in user_10)
+            self.assertIn(i, user_10, "Iteration with i=%d" % i)
             self.assertIsInstance(user_10[i], list)
 
         self.assertEqual(user_10[0], [])
@@ -192,7 +192,8 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
             [123, 234, 345, 456, 567, 678, 789, 890]), 510.25)
 
         for a in [randint(2, 123) for i in xrange(randint(2, 123))]:
-            self.assertEqual(utils.mean(xrange(1, a)), a/2.0)
+            self.assertEqual(utils.mean(xrange(1, a)), a/2.0,
+                             "Iteration with: a=%s" % a)
 
     def test_seconds_since_midnight(self):
         """
@@ -220,6 +221,13 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
         dd2 = datetime.datetime(2013, 5, 1, 1, 05, 04)
         self.assertEqual(utils.interval(dd2-td, dd2), td.seconds-24*60*60)
+
+        dn = datetime.datetime.now()
+        self.assertEqual(utils.interval(dn, dn), 0)
+
+        dd3 = datetime.time(12, 45, 34)
+        dd4 = datetime.time(11, 45, 34)
+        self.assertEqual(utils.interval(dd4, dd3), 60*60)
 
 
 class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
