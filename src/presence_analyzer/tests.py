@@ -7,6 +7,7 @@ import json
 import datetime
 import unittest
 from mock import patch
+from numpy.oldnumeric.random_array import randint
 
 from presence_analyzer import main, views, utils
 
@@ -160,6 +161,62 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertItemsEqual(data[10][sample_date].keys(), ['start', 'end'])
         self.assertEqual(data[10][sample_date]['start'],
                          datetime.time(9, 39, 5))
+
+    def test_group_by_weekday(self):
+        data = utils.get_data()
+        user_10 = utils.group_by_weekday(data[10])
+
+        self.assertEqual(len(user_10), 7)
+        self.assertIsInstance(user_10, dict)
+
+        for i in xrange(7):
+            self.assertTrue(i in user_10)
+            self.assertIsInstance(user_10[i], list)
+
+        self.assertEqual(user_10[0], [])
+        self.assertIsInstance(user_10[1][0], int)
+
+    def test_mean(self):
+        """
+        Test calculation of mean
+        """
+        self.assertEqual(utils.mean([]), 0)
+        self.assertIsInstance(utils.mean([]), int)
+        self.assertIsInstance(utils.mean([1, 2, 3]), float)
+        self.assertEqual(utils.mean([1, 2, 3]), 2)
+        self.assertEqual(utils.mean([a for a in xrange(-100, 101, -1)]), 0)
+        self.assertEqual(utils.mean(
+            [123, 234, 345, 456, 567, 678, 789, 890]), 510.25)
+
+        for a in [randint(2, 123) for i in xrange(randint(2, 123))]:
+            self.assertEqual(utils.mean(xrange(1, a)), a/2.0)
+
+    def test_seconds_since_midnight(self):
+        """
+        Test secounds since midnight calculation
+        """
+        self.assertEquals(utils.seconds_since_midnight(
+            datetime.datetime(1, 1, 1)), 0)
+        self.assertIsInstance(utils.seconds_since_midnight(
+            datetime.datetime(1, 1, 1)), int)
+        self.assertEquals(utils.seconds_since_midnight(
+            datetime.datetime(1, 1, 1)), 0)
+        self.assertEquals(utils.seconds_since_midnight(
+            datetime.time(0, 0, 1)), 1)
+        self.assertEquals(utils.seconds_since_midnight(
+            datetime.time(12, 0, 0)), 43200)
+
+    def test_interval(self):
+        """
+        Test interval calculation
+        """
+        td = datetime.timedelta(hours=4)
+        dd1 = datetime.datetime(2013, 5, 1, 12, 05, 04)
+        self.assertIsInstance(utils.interval(dd1-td, dd1), int)
+        self.assertEqual(utils.interval(dd1-td, dd1), td.seconds)
+
+        dd2 = datetime.datetime(2013, 5, 1, 1, 05, 04)
+        self.assertEqual(utils.interval(dd2-td, dd2), td.seconds-24*60*60)
 
 
 class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
