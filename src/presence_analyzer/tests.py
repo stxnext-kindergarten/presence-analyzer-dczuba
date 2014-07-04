@@ -163,6 +163,9 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
                          datetime.time(9, 39, 5))
 
     def test_group_by_weekday(self):
+        """
+        Test grouping by weekday
+        """
         data = utils.get_data()
         user_10 = utils.group_by_weekday(data[10])
 
