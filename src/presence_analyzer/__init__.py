@@ -2,3 +2,6 @@
 """
 Main module for presence analyzer
 """
+
+from .main import app
+from . import views
