@@ -7,7 +7,7 @@ import json
 import datetime
 import unittest
 from mock import patch
-from numpy.oldnumeric.random_array import randint
+from random import randint
 
 from presence_analyzer import main, views, utils
 
