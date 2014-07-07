@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang=en>
 <head>
@@ -7,7 +8,7 @@
     <meta name="description" content=""/>
     <meta name="author" content="STX Next sp. z o.o."/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-    
+
     <link href="/static/css/normalize.css" media="all" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body {
@@ -23,7 +24,7 @@
             padding: 0 2em;
             border: 1px solid #AAA;
             background-color: #FFF;
-            
+
             border: 1px solid black;
             clear: both;
             padding: 0 1em;
@@ -38,14 +39,14 @@
             padding: 0;
             margin: 0;
         }
-        
+
         #header li {
             float: left;
             border: 1px solid #bbb;
             border-bottom-width: 0;
             margin: 0;
         }
-        
+
         #header a {
             text-decoration: none;
             display: block;
@@ -55,15 +56,15 @@
             width: 12em;
             text-align: center;
         }
-        
+
         #header a:hover {
             background: #ddf;
         }
-        
+
         #header #selected {
             border-color: black;
         }
-        
+
         #header #selected a {
             position: relative;
             top: 1px;
@@ -76,15 +77,9 @@
     <script src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
-        google.load("visualization", "1", {packages:["corechart"], 'language': 'pl'});
+        google.load("visualization", "1", {packages:["corechart", "timeline"], 'language': 'pl'});
     </script>
     <script type="text/javascript">
-        function parseInterval(value) {
-            var result = new Date(1,1,1);
-            result.setMilliseconds(value*1000);
-            return result;
-        }
-
         (function($) {
             $(document).ready(function(){
                 var loading = $('#loading');
@@ -102,25 +97,28 @@
                     if(selected_user) {
                         loading.show();
                         chart_div.hide();
-                        $.getJSON("/api/v1/mean_time_weekday/"+selected_user, function(result) {
-                            $.each(result, function(index, value) {
-                                value[1] = parseInterval(value[1]);
-                            });
-                            console.log(result);
+
+                        $.getJSON("/api/v1/presence_start_end/"+selected_user, function(result) {
+                            for(var i = 0; i<result.length; i++){
+                                result[i][1] = new Date(result[i][1]);
+                                result[i][2] = new Date(result[i][2]);
+                            }
+
                             var data = new google.visualization.DataTable();
                             data.addColumn('string', 'Weekday');
-                            data.addColumn('datetime', 'Mean time (h:m:s)');
+                            data.addColumn({ type: 'datetime', id: 'Start' });
+                            data.addColumn({ type: 'datetime', id: 'End' });
                             data.addRows(result);
                             var options = {
                                 hAxis: {title: 'Weekday'}
                             };
                             var formatter = new google.visualization.DateFormat({pattern: 'HH:mm:ss'});
                             formatter.format(data, 1);
+                            formatter.format(data, 2);
 
-                            
                             chart_div.show();
                             loading.hide();
-                            var chart = new google.visualization.ColumnChart(chart_div[0]);
+                            var chart = new google.visualization.Timeline(chart_div[0]);
                             chart.draw(data, options);
                         });
                     }
@@ -134,15 +132,15 @@
     <div id="main">
         <div id="header">
             <h1>Presence analyzer</h1>
-            
+
             <ul>
                 <li><a href="/static/presence_weekday.html">Presence by weekday</a></li>
-                <li id="selected"><a href="/static/mean_time_weekday.html">Presence mean time</a></li>
-                <li><a href="/static/presence_start_end.html">Presence start-end</a></li>
+                <li><a href="/static/mean_time_weekday.html">Presence mean time</a></li>
+                <li id="selected"><a href="/static/presence_start_end.html">Presence start-end</a></li>
             </ul>
         </div>
         <div id="content">
-            <h2>Presence mean time by weekday</h2>
+            <h2>Presence start-end weekday</h2>
             <p>
                 <select id="user_id" style="display: none">
                     <option value="">--</option>
