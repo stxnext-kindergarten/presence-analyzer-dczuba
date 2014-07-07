@@ -100,6 +100,9 @@ def mean(items):
 
 
 def get_start_end_mean_time(user_data):
+    """
+    Calculate mean value start/end user's working time
+    """
     result = {}
     dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
