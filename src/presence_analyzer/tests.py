@@ -20,6 +20,8 @@ BAD_TEST_DATA_CSV = os.path.join(
     CURRENT_PATH, '..', '..', 'runtime', 'data', 'bad_test_data.csv'
 )
 
+VALID_HTML_MIME = ('text/html', 'text/html; charset=utf-8')
+
 
 # pylint: disable=E1103
 class PresenceAnalyzerViewsTestCase(unittest.TestCase):
@@ -196,6 +198,22 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         data = json.loads(resp.data)
         self.assertEqual(data, [])
 
+    def test_template_view(self):
+        """
+        Test template_view view
+        """
+        resp = self.client.get('/presence_weekday.html')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(resp.content_type, VALID_HTML_MIME)
+
+        resp = self.client.get('mean_time_weekday.html')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(resp.content_type, VALID_HTML_MIME)
+
+        resp = self.client.get('/presence_weekday_asdasd.html')
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn(resp.content_type, VALID_HTML_MIME)
+
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
     """
@@ -256,9 +274,9 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertEqual(utils.mean(
             [123, 234, 345, 456, 567, 678, 789, 890]), 510.25)
 
-        for a in [randint(2, 123) for i in xrange(randint(2, 123))]:
-            self.assertEqual(utils.mean(xrange(1, a)), a/2.0,
-                             "Iteration with: a=%s" % a)
+        for j in [randint(2, 123) for _ in xrange(randint(2, 123))]:
+            self.assertEqual(utils.mean(xrange(1, j)), j/2.0,
+                             "Iteration with: a=%s" % j)
 
     def test_seconds_since_midnight(self):
         """

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Presence analyzer{% endblock %}
+
+{% block tab_title %}Presence start-end time by weekday{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function($) {
+    $(document).ready(function(){
+        var loading = $('#loading');
+
+        $('#user_id').change(function(){
+            var selected_user = $("#user_id").val();
+            var chart_div = $('#chart_div');
+            if(selected_user) {
+                loading.show();
+                chart_div.hide();
+
+                $.getJSON(urls.api_presence_start_end.replace('123', selected_user), function(result) {
+                    for(var i = 0; i<result.length; i++){
+                        result[i][1] = new Date(result[i][1]);
+                        result[i][2] = new Date(result[i][2]);
+                    }
+
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Weekday');
+                    data.addColumn({ type: 'datetime', id: 'Start' });
+                    data.addColumn({ type: 'datetime', id: 'End' });
+                    data.addRows(result);
+                    var options = {
+                        hAxis: {title: 'Weekday'}
+                    };
+                    var formatter = new google.visualization.DateFormat({pattern: 'HH:mm:ss'});
+                    formatter.format(data, 1);
+                    formatter.format(data, 2);
+
+                    chart_div.show();
+                    loading.hide();
+                    var chart = new google.visualization.Timeline(chart_div[0]);
+                    chart.draw(data, options);
+                });
+            }
+        });
+    });
+})(jQuery);
+</script>
+{% endblock %}
