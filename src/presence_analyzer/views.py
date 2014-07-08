@@ -9,7 +9,7 @@ from jinja2.exceptions import TemplateNotFound
 
 from presence_analyzer.main import app
 from presence_analyzer.utils import jsonify, get_data, \
-    mean, group_by_weekday, get_start_end_mean_time
+    mean, group_by_weekday, get_start_end_mean_time, get_users
 
 import logging
 
@@ -41,9 +41,9 @@ def users_view():
     """
     Users listing for dropdown.
     """
-    data = get_data()
-    return [{'user_id': i, 'name': 'User {0}'.format(str(i))}
-            for i in data.keys()]
+    users = get_users()
+    return [{'user_id': i, 'name': row['name'], 'avatar': row['avatar']}
+            for i, row in users.items()]
 
 
 @app.route('/api/v1/mean_time_weekday/<int:user_id>', methods=['GET'])
