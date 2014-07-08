@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 import urllib2
-
+from lxml import etree
 import paste.script.command
 import werkzeug.script
 
@@ -120,5 +120,15 @@ def sync_users():
     config = make_app().config
     request = urllib2.Request(config['DATA_URL'])
 
+    try:
+        response = urllib2.urlopen(request)
+    except urllib2.HTTPError:
+        return
+
+    content = response.read()
+
+    if not content:
+        return
+
     with open(config['DATA_XML'], 'w') as data_xml_fh:
-        data_xml_fh.write(urllib2.urlopen(request).read())
+        data_xml_fh.write(content)
