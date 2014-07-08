@@ -42,7 +42,17 @@
             </ul>
         </div>
         <div id="content">
-            {% block content %}{% endblock %}
+            <h2>{% block tab_title %}{% endblock %}</h2>
+            <p>
+                <select id="user_id" style="display: none">
+                    <option value="">--</option>
+                </select>
+                <div id="chart_div" style="display: none">
+                </div>
+                <div id="loading">
+                    <img src="/static/img/loading.gif" />
+                </div>
+            </p>
         </div>
     </div>
 </body>

@@ -2,19 +2,7 @@
 
 {% block title %}Presence analyzer{% endblock %}
 
-{% block content %}
-<h2>Presence by weekday</h2>
-<p>
-    <select id="user_id" style="display: none">
-        <option value="">--</option>
-    </select>
-    <div id="chart_div" style="display: none">
-    </div>
-    <div id="loading">
-        <img src="/static/img/loading.gif" />
-    </div>
-</p>
-{% endblock %}
+{% block tab_title %}Presence by weekday{% endblock %}
 
 {% block extra_scripts %}
 <script>
