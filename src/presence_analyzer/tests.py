@@ -20,6 +20,14 @@ BAD_TEST_DATA_CSV = os.path.join(
     CURRENT_PATH, '..', '..', 'runtime', 'data', 'bad_test_data.csv'
 )
 
+TEST_DATA_XML = os.path.join(
+    CURRENT_PATH, '..', '..', 'runtime', 'data', 'test_users.xml'
+)
+
+BAD_TEST_DATA_XML = os.path.join(
+    CURRENT_PATH, '..', '..', 'runtime', 'data', 'bad_test_users.xml'
+)
+
 VALID_HTML_MIME = ('text/html', 'text/html; charset=utf-8')
 
 
@@ -34,6 +42,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': TEST_DATA_XML})
         self.client = main.app.test_client()
 
     def tearDown(self):
@@ -58,8 +67,12 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
-        self.assertEqual(len(data), 2)
-        self.assertDictEqual(data[0], {u'user_id': 10, u'name': u'User 10'})
+        self.assertEqual(len(data), 9)
+        self.assertDictEqual(
+            data[0],
+            {u'avatar': u'https://intranet.stxnext.pl:443/api/images/users/36',
+             u'name': u'Anna W.', u'user_id': 36}
+        )
 
     def test_presence_start_end_view(self):
         """
@@ -225,6 +238,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': TEST_DATA_XML})
 
     def tearDown(self):
         """
@@ -312,6 +326,23 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         dd4 = datetime.time(11, 45, 34)
         self.assertEqual(utils.interval(dd4, dd3), 60*60)
 
+    def test_get_user(self):
+        """
+        Test for reading data from users.xml
+        """
+        users = utils.get_users()
+        users_items = users.items()
+
+        self.assertEqual(len(users), 9)
+        self.assertIsInstance(users, dict)
+        self.assertIsInstance(users[122], dict)
+
+        self.assertIn(36, users)
+        self.assertIn(122, users)
+
+        self.assertIsInstance(users[122], dict)
+        self.assertEqual(len(users_items[1][1]), 2)
+
 
 class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
     """
@@ -323,6 +354,7 @@ class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': BAD_TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': BAD_TEST_DATA_XML})
 
     def tearDown(self):
         """
@@ -343,6 +375,13 @@ class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
         self.assertItemsEqual(data.keys(), [10, 11])
         self.assertEqual(len(data), 2)
         self.assertEqual(len(data[10])+len(data[11]), 9)
+
+    def test_get_user(self):
+        """
+        Test for reading data from users.xml with bad entries
+        """
+        with self.assertRaises(AttributeError):
+            utils.get_users()
 
 
 def suite():

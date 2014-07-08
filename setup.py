@@ -28,10 +28,12 @@ setup(
         'mock',
         'setuptools',
         'Flask',
+	'lxml',
     ],
     entry_points="""
     [console_scripts]
     flask-ctl = presence_analyzer.script:run
+    sync-users-xml = presence_analyzer.script:sync_users
 
     [paste.app_factory]
     main = presence_analyzer.script:make_app

@@ -5,6 +5,7 @@
 import os
 import sys
 from functools import partial
+import urllib2
 
 import paste.script.command
 import werkzeug.script
@@ -111,3 +112,13 @@ def run():
         _serve('stop', dry_run=dry_run)
 
     werkzeug.script.run()
+
+
+# bin/sync-users-xml
+def sync_users():
+    """ Fetch users data """
+    config = make_app().config
+    request = urllib2.Request(config['DATA_URL'])
+
+    with open(config['DATA_XML'], 'w') as data_xml_fh:
+        data_xml_fh.write(urllib2.urlopen(request).read())

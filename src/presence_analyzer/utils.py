@@ -7,7 +7,7 @@ import csv
 from json import dumps
 from functools import wraps
 from datetime import datetime
-
+from lxml import etree
 from flask import Response
 
 from presence_analyzer.main import app
@@ -118,3 +118,25 @@ def get_start_end_mean_time(user_data):
         (dows[k], int(mean(v['start'])*1000), int(mean(v['end'])*1000))
         for k, v in result.items()
     ]
+
+
+def get_users():
+    """
+    Return dict of users from users.xml
+    """
+    with open(app.config['DATA_XML']) as users_fh:
+        users = etree.XML(users_fh.read())
+
+    server = users.find('server')
+    base_url = '%s://%s:%d' % (
+        server.find('protocol').text,
+        server.find('host').text,
+        int(server.find('port').text),
+    )
+
+    return {
+        int(u.get('id')):
+            {'name': u.find('name').text,
+             'avatar': "%s%s" % (base_url, u.find('avatar').text)}
+        for u in users.find('users')
+    }
