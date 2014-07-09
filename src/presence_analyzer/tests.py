@@ -9,7 +9,7 @@ import unittest
 from mock import patch
 from random import randint
 
-from presence_analyzer import main, views, utils
+from presence_analyzer import main, views, utils, decorators, helpers
 
 CURRENT_PATH = os.path.dirname(__file__)
 TEST_DATA_CSV = os.path.join(
@@ -98,6 +98,8 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         user_id = 112312
         resp = self.client.get(url % user_id)
         mock_logger.assert_called_once_with('User %s not found!', user_id)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
 
     def test_mean_time_weekday_view(self):
         """
@@ -311,16 +313,18 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         """
         Test interval calculation
         """
-        td = datetime.timedelta(hours=4)
+        time_delta = datetime.timedelta(hours=4)
         dd1 = datetime.datetime(2013, 5, 1, 12, 05, 04)
-        self.assertIsInstance(utils.interval(dd1-td, dd1), int)
-        self.assertEqual(utils.interval(dd1-td, dd1), td.seconds)
+        self.assertIsInstance(utils.interval(dd1-time_delta, dd1), int)
+        self.assertEqual(utils.interval(dd1-time_delta, dd1),
+                         time_delta.seconds)
 
         dd2 = datetime.datetime(2013, 5, 1, 1, 05, 04)
-        self.assertEqual(utils.interval(dd2-td, dd2), td.seconds-24*60*60)
+        self.assertEqual(utils.interval(dd2-time_delta, dd2),
+                         time_delta.seconds-24*60*60)
 
-        dn = datetime.datetime.now()
-        self.assertEqual(utils.interval(dn, dn), 0)
+        dt_now = datetime.datetime.now()
+        self.assertEqual(utils.interval(dt_now, dt_now), 0)
 
         dd3 = datetime.time(12, 45, 34)
         dd4 = datetime.time(11, 45, 34)
@@ -353,6 +357,9 @@ class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
         """
         Before each test, set up a environment.
         """
+        reload(decorators)
+        reload(utils)
+
         main.app.config.update({'DATA_CSV': BAD_TEST_DATA_CSV})
         main.app.config.update({'DATA_XML': BAD_TEST_DATA_XML})
 
@@ -384,6 +391,64 @@ class PresenceAnalyzerUtilsWithBadDataTestCase(unittest.TestCase):
             utils.get_users()
 
 
+class PresenceAnalyzerDecoratorsTestCase(unittest.TestCase):
+    """
+    Decorators functions tests.
+    """
+
+    def setUp(self):
+        """
+        Before each test, set up a environment.
+        """
+        reload(decorators)
+        main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_XML': TEST_DATA_XML})
+
+    @patch.object(decorators.log, 'debug')
+    def test_get_data(self, mock_logger):
+        """
+        Test cache decorator
+        """
+        refresh_msg = 'Refreshing cache for %s'
+        retrieve_msg = 'Retrieving from cache %s'
+
+        data1 = utils.get_data()
+        key = helpers.generate_cache_key(utils.get_data, (), {})
+        mock_logger.assert_call_with(refresh_msg % key)
+        data2 = utils.get_data()
+        mock_logger.assert_call_with(retrieve_msg % key)
+
+        self.assertEqual(data1, data2)
+
+
+class PresenceAnalyzerHelpersTestCase(unittest.TestCase):
+    """
+    Helpers functions tests.
+    """
+
+    def test_generate_cache_key(self):
+        """
+        Test generating cache key
+        """
+        key1 = helpers.generate_cache_key(utils.get_users, (), {})
+        key2 = helpers.generate_cache_key(utils.get_data, (), {})
+        key3 = helpers.generate_cache_key(utils.interval, (12, 32), {})
+        key4 = helpers.generate_cache_key(utils.interval, (),
+                                          {'end': 12, 'start': 32})
+
+        assert1 = 'presence_analyzer.utils.get_users:3527539:133156838395276'
+        assert2 = 'presence_analyzer.utils.get_data:3527539:133156838395276'
+        assert3 = 'presence_analyzer.utils.interval:3713076219329978631:' \
+                  '133156838395276'
+        assert4 = 'presence_analyzer.utils.interval:3527539:' \
+                  '5214707252506937883'
+
+        self.assertEqual(key1, assert1)
+        self.assertEqual(key2, assert2)
+        self.assertEqual(key3, assert3)
+        self.assertEqual(key4, assert4)
+
+
 def suite():
     """
     Default test suite.
@@ -393,6 +458,8 @@ def suite():
     test_suite.addTest(unittest.makeSuite(PresenceAnalyzerUtilsTestCase))
     test_suite.addTest(unittest.makeSuite(
         PresenceAnalyzerUtilsWithBadDataTestCase))
+    test_suite.addTest(unittest.makeSuite(PresenceAnalyzerDecoratorsTestCase))
+
     return test_suite
 
 

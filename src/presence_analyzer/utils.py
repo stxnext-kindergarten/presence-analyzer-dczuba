@@ -9,11 +9,12 @@ from functools import wraps
 from datetime import datetime
 from lxml import etree
 from flask import Response
+from presence_analyzer.decorators import cache
 
 from presence_analyzer.main import app
 
 import logging
-log = logging.getLogger(__name__)  # pylint: disable-msg=C0103
+log = logging.getLogger(__name__)  # pylint: disable=C0103
 
 
 def jsonify(function):
@@ -27,6 +28,7 @@ def jsonify(function):
     return inner
 
 
+@cache(600)
 def get_data():
     """
     Extracts presence data from CSV file and groups it by user_id.
@@ -120,6 +122,7 @@ def get_start_end_mean_time(user_data):
     ]
 
 
+@cache(60*60)
 def get_users():
     """
     Return dict of users from users.xml
