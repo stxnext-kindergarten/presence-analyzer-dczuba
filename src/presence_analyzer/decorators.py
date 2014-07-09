@@ -20,6 +20,7 @@ def cache(time=60*60):
     #   indexes are generated keys
     #   value is dict: {'valid_till': <datetime.datetime>, 'data': <dict>}
     cached_data = {}
+    lock = Lock()
 
     def decorator(func):
 
@@ -34,7 +35,6 @@ def cache(time=60*60):
             )
             if refresh_key:
                 log.debug('Refreshing cache for %s' % key)
-                lock = Lock()
                 with lock:
                     cached_data[key] = {
                         'valid_till': datetime.now()+timedelta(seconds=time),
