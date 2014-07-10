@@ -6,7 +6,7 @@ import os
 import sys
 from functools import partial
 import urllib2
-from lxml import etree
+
 import paste.script.command
 import werkzeug.script
 

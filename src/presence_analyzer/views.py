@@ -4,7 +4,7 @@ Defines views.
 """
 
 import calendar
-from flask import redirect, render_template, url_for, request
+from flask import redirect, render_template, url_for
 from jinja2.exceptions import TemplateNotFound
 
 from presence_analyzer.main import app
@@ -13,7 +13,7 @@ from presence_analyzer.utils import jsonify, get_data, \
 
 import logging
 
-log = logging.getLogger(__name__)  # pylint: disable-msg=C0103
+log = logging.getLogger(__name__)  # pylint: disable=C0103
 
 
 @app.route('/')
